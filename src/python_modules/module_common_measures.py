@@ -7,7 +7,7 @@ Created on Wed Sep 30 12:30:12 2020
 import numpy as np
 from collections import defaultdict 
 import pandas as pd
-
+import matplotlib.pyplot as plt
 
 
 ## Function to find common (how many) interaction partners of one gene with its interactors
@@ -180,3 +180,57 @@ def common_go(data_go,data_common_partners):
     df_sorted=df.sort_values(by='fraction-of-common-go',ascending=False)
 
     return df_sorted
+
+def plotCommonHist(ax,data,binList):
+
+    ax.set_ylabel('Count') #normalize?
+   
+    out =  ax.hist(data,binList)
+
+    
+    return out
+
+def plotCommonScatter(ax,data1,data2):
+
+    ax.set_xlabel('% of GO-terms in common')
+    ax.set_ylabel('% of interactors in common')
+       
+    out =  ax.scatter(data1,data2)
+
+    
+    return out
+
+def commonPhenotype(dataPhenotype,dataCommonPartners):
+    
+    d3=defaultdict(dict)
+    query=np.unique(np.array(dataCommonPartners['query'])) # Finds all query genes listed with a common partner
+    # big for loop for each gene analyzed in common partners
+    for i in np.arange(0,len(query)):
+        partners=dataCommonPartners[dataCommonPartners['query']==query[i]]['names of genes']
+
+        d2=defaultdict(dict)
+
+        for genes in partners:
+            d2[genes]['query']=query[i]
+            d2[genes]['names of genes']=genes
+
+            tmp=dataPhenotype[dataPhenotype['gene-query-name']==query[i]]['interaction-type'].tolist()
+            tmp=np.unique(tmp).tolist()
+
+            tmp2=dataPhenotype[dataPhenotype['gene-query-name']==genes]['interaction-type'].tolist()
+            tmp2=np.unique(tmp2).tolist()
+
+            d2[genes]['common-phen-interactor']=np.intersect1d(tmp,tmp2)
+            if len(tmp)==0:
+                d2[genes]['fraction-of-common-phen']=0
+            else:
+                d2[genes]['fraction-of-common-phen']=len(np.intersect1d(tmp,tmp2))/len(tmp) *100
+            
+  
+        d3.update(d2)
+        
+    df=pd.DataFrame(d3).T
+    df_sorted=df.sort_values(by='fraction-of-common-phen',ascending=False)
+
+    return df_sorted
+    
