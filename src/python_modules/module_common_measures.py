@@ -234,3 +234,38 @@ def commonPhenotype(dataPhenotype,dataCommonPartners):
 
     return df_sorted
     
+#%% modulesT
+
+def common_member(a, b): 
+    a_set = set(a) 
+    b_set = set(b) 
+    if len(a_set.intersection(b_set)) > 0: 
+        return(a_set.intersection(b_set))  
+    return()
+
+def common_partners_T(query,interactionData): #interaction data must have a 'gene query name' and a 'gene target name' column
+    '''
+    Finds common interactors for all genes in the query based on supplied interaction data
+    query: list of genes
+    ineractionData: dataframe of genetic interactions, contains gene query, gene target and type of interaction
+    '''
+    # d2 = defaultdict(dict)
+    commonInteractors = defaultdict(dict)
+    
+    for queryGene in query: #For each query gene
+    
+        query1 = interactionData[interactionData['gene-query-name']==queryGene] #Reduce list to only query gene
+        interactorList = query1['gene-target-name'].unique() #List genes interacting with query1 gene 
+        
+        for interactorGene in interactorList:
+            
+            query2 = interactionData[interactionData['gene-query-name']==interactorGene]
+            interactors = query2['gene-target-name'].unique() #List genes interacting with query2 gene
+            tempCommonInt = common_member(interactorList, interactors)
+            commonInteractors[queryGene] = tempCommonInt
+        
+            # for interactorName  in interactors:
+            #     if interactorName in interactorList: # if a gene interactor of the query1 is in interactors of query 2 
+            #         commonInteractors.append(interactorName) #add gene to list
+                    
+    return commonInteractors #note, so far will only work properly for 1 gene in query...
